@@ -1,25 +1,16 @@
-name: BTC_Price_Test
+name: BTC_Oracle_Scanner
 on:
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '*/1 * * * *'
   workflow_dispatch:
 jobs:
-  btc:
+  scan:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-      
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-      
-      - name: Install Requests
-        run: pip install requests
-        
-      - name: Run Script
-        env:
-          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-          CHAT_ID: ${{ secrets.CHAT_ID }}
+      - run: pip install -r requirements.txt
+      - name: Run Oracle
         run: python main.py
