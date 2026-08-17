@@ -1,27 +1,33 @@
 import requests
 import os
+import sys
 
 try:
-    token = os.getenv('8913665698:AAE4KqNbiJEM1VLnTIwXdOKuJGVteP2v0Tw')
-    chat_id = os.getenv('8193076289')
+    token = os.environ.get('8913665698:AAE4KqNbiJEM1VLnTIwXdOKuJGVteP2v0Tw')
+    chat_id = os.environ.get('8193076289')
     
-    print(f"Token found: {bool(token)}")
-    print(f"Chat ID found: {bool(chat_id)}")
+    if not token or not chat_id:
+        print("❌ ERROR: Secrets (BOT_TOKEN or CHAT_ID) are missing!")
+        sys.exit(1)
+
+    # BTC Price uthana
+    res = requests.get("https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT", timeout=20)
+    price_data = res.json()
+    price = float(price_data['price'])
     
-    price = requests.get(
-        "https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT",
-        timeout=10
-    ).json()['price']
+    # Telegram bhejna
+    msg = f"₿ BTC Price: ${price:,.2f}"
+    url = f"https://api.telegram.org/bot{token}/sendMessage"
+    payload = {"chat_id": chat_id, "text": msg}
     
-    print(f"BTC Price: {price}")
+    telegram_res = requests.post(url, json=payload)
     
-    r = requests.post(
-        f"https://api.telegram.org/bot{token}/sendMessage",
-        json={"chat_id": chat_id, "text": f"BTC: ${float(price):,.2f}"}
-    )
-    
-    print(f"Telegram Response: {r.status_code}")
-    print(f"Telegram Message: {r.text}")
-    
+    if telegram_res.status_code == 200:
+        print("✅ Success: Message sent to Telegram!")
+    else:
+        print(f"❌ Telegram Error: {telegram_res.text}")
+        sys.exit(1)
+
 except Exception as e:
-    print(f"ERROR: {e}")
+    print(f"❌ Script Crashed: {str(e)}")
+    sys.exit(1)
