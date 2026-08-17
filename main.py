@@ -8,7 +8,7 @@ CHAT_ID = "8193076289"
 SYMBOL = 'BTC/USDT'
 # ============================
 
-exchange = ccxt.binance()
+exchange = ccxt.kucoin()  # Binance ki jagah KuCoin
 
 def send_telegram(message):
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
@@ -33,8 +33,10 @@ def get_liquidity_data():
 
         # 3. Recent Trades
         trades = exchange.fetch_trades(SYMBOL, limit=50)
-        recent_buys = sum([t['amount'] for t in trades if t['side'] == 'buy'])
-        recent_sells = sum([t['amount'] for t in trades if t['side'] == 'sell'])
+        recent_buys = sum([t['amount'] for t in trades 
+                          if t['side'] == 'buy'])
+        recent_sells = sum([t['amount'] for t in trades 
+                           if t['side'] == 'sell'])
 
         # 4. Price
         price = exchange.fetch_ticker(SYMBOL)['last']
@@ -47,10 +49,10 @@ def get_liquidity_data():
 💀 <b>MAYA DETECTED - SHORT SIGNAL</b>
 ⏰ Time: {time_now}
 💰 BTC Price: ${price:,.2f}
-📊 Buy Liquidity: {total_buy_vol:.2f} BTC
-📊 Sell Liquidity: {total_sell_vol:.2f} BTC
+📊 Buy Liq: {total_buy_vol:.2f} BTC
+📊 Sell Liq: {total_sell_vol:.2f} BTC
 ⚡ Buyers: {recent_buys:.2f} vs Sellers: {recent_sells:.2f}
-🎯 Strategy: Fake pump expected. Whales dumping soon.
+🎯 Whales dumping soon. SHORT ready.
             """
             send_telegram(msg)
 
@@ -59,18 +61,23 @@ def get_liquidity_data():
 🔥 <b>BHEDA DETECTED - LONG SIGNAL</b>
 ⏰ Time: {time_now}
 💰 BTC Price: ${price:,.2f}
-📊 Buy Liquidity: {total_buy_vol:.2f} BTC
-📊 Sell Liquidity: {total_sell_vol:.2f} BTC
+📊 Buy Liq: {total_buy_vol:.2f} BTC
+📊 Sell Liq: {total_sell_vol:.2f} BTC
 ⚡ Buyers: {recent_buys:.2f} vs Sellers: {recent_sells:.2f}
-🎯 Strategy: Whales absorbing. Bottom trap. LONG now.
+🎯 Whales absorbing. LONG now.
             """
             send_telegram(msg)
 
         else:
-            print(f"[{time_now}] No signal. Whales indecisive.")
+            send_telegram(f"""
+⚔️ <b>No Signal</b>
+⏰ Time: {time_now}
+💰 BTC Price: ${price:,.2f}
+📊 Imbalance: {imbalance:.2f}
+🔍 Whales indecisive. Wait karo.
+            """)
 
     except Exception as e:
         send_telegram(f"❌ Oracle Error: {str(e)}")
 
-# Single execution (GitHub Actions karега schedule)
 get_liquidity_data()
